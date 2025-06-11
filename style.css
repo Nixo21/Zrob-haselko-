@@ -1,4 +1,8 @@
 body { font-family: sans-serif; background: #eee; text-align: center; }
-#board { margin: auto; }
+input { font-size: 1.2em; padding: 0.5em; width: 80%; max-width: 500px; }
+ul { margin-top: 1em; padding-left: 0; list-style: none; }
+li { margin: 0.3em 0; padding: 0.3em; border-radius: 4px; transition: background 0.3s; }
 li.valid { background: #cfc; }
 li.invalid { background: #fcc; }
+#map { margin: auto; max-width: 600px; }
+#board { margin: auto; }
