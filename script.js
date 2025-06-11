@@ -3,10 +3,9 @@ const rulesUI = document.getElementById('rulesList');
 const status  = document.getElementById('statusMessage');
 const flagDiv = document.getElementById('flagContainer');
 
-// Funkcja do obliczania fazy księżyca i zwracania emoji
 function getMoonEmoji() {
   const today = new Date();
-  const lp = 2551443; // długość cyklu księżycowego w sekundach
+  const lp = 2551443;
   const new_moon = new Date(1970, 0, 7, 20, 35, 0);
   const phase = ((today.getTime() - new_moon.getTime()) / 1000) % lp;
   const index = Math.floor((phase / (lp / 8))) % 8;
@@ -15,12 +14,8 @@ function getMoonEmoji() {
 
 const moonEmoji = getMoonEmoji();
 const today = new Date();
-
-// Lista słów do polskiego Wordle (prosty zestaw na każdy dzień)
 const wordleList = ['kotek','mleko','domki','psion','rzeka'];
 const wordleWord = wordleList[today.getDate() % wordleList.length];
-
-// Odpowiedzi do geogessera i szachów (proste stałe na początek)
 const geoAnswer = "Polska";
 const chessBest = 'e4';
 const targetSum = 25;
@@ -29,7 +24,6 @@ const sqrtNum = 144;
 const sqrtAns = String(Math.sqrt(sqrtNum));
 const youtubers = ['GPlay','Graf','Rezi'];
 
-// Pokazujemy flagę kraju do geogessera
 const flagURL = "https://flagcdn.com/w320/pl.png";
 flagDiv.innerHTML = `<img src="${flagURL}" width="100" alt="Flaga kraju" /><br><small>Jakiego to kraju flaga?</small>`;
 
@@ -40,16 +34,15 @@ const rules = [
   { desc: '4. Min. znak specjalny (!@#$%^&*)',             test: p => /[!@#$%^&*]/.test(p) },
   { desc: '5. Brak spacji',                                test: p => !/\s/.test(p) },
   { desc: `6. Zawiera emotkę fazy księżyca ${moonEmoji}`, test: p => p.includes(moonEmoji) },
-  { desc: `7. Suma cyfr = ${targetSum}`,                   test: p => (p.match(/\d/g)||[]).map(Number).reduce((a,b)=>a+b,0) === targetSum },
+  { desc: `7. Suma cyfr = ${targetSum}`,                  test: p => (p.match(/\d/g)||[]).map(Number).reduce((a,b)=>a+b,0) === targetSum },
   { desc: `8. Geo: wpisz kraj z flagi`,                    test: p => p.toLowerCase().includes(geoAnswer.toLowerCase()) },
-  { desc: `9. Szachy: ruch "${chessBest}"`,                test: p => p.includes(chessBest) },
-  { desc: `10. Liczba rzymska "${romanNum}"`,              test: p => p.includes(romanNum) },
-  { desc: `11. Pierwiastek z ${sqrtNum} = ${sqrtAns}`,     test: p => p.includes(sqrtAns) },
-  { desc: `12. YouTuber: ${youtubers.join(', ')}`,         test: p => youtubers.some(n=>p.includes(n)) },
-  { desc: `13. Hasło zawiera polskie słowo Wordle "${wordleWord}"`, test: p => p.toLowerCase().includes(wordleWord) },
+  { desc: `9. Szachy: ruch "${chessBest}"`,               test: p => p.includes(chessBest) },
+  { desc: `10. Liczba rzymska "${romanNum}"`,             test: p => p.includes(romanNum) },
+  { desc: `11. Pierwiastek z ${sqrtNum} = ${sqrtAns}`,   test: p => p.includes(sqrtAns) },
+  { desc: `12. YouTuber: ${youtubers.join(', ')}`,        test: p => youtubers.some(n=>p.includes(n)) },
+  { desc: `13. Hasło zawiera słowo Wordle "${wordleWord}"`, test: p => p.toLowerCase().includes(wordleWord) },
 ];
 
-// Stan reguł (true=zaliczona)
 let ruleStates = new Array(rules.length).fill(false);
 
 function updateRules() {
@@ -66,16 +59,13 @@ function updateRules() {
   rules.forEach((r, i) => {
     const li = document.createElement('li');
     li.textContent = r.desc;
-    if (ruleStates[i]) li.className = 'valid';
-    else li.className = (i === firstInvalidIndex) ? 'invalid' : '';
+    li.className = ruleStates[i] ? 'valid' : (i === firstInvalidIndex ? 'invalid' : '');
     rulesUI.appendChild(li);
   });
 
-  if (ruleStates.every(Boolean)) {
-    status.textContent = '✅ Hasło spełnia wszystkie wymagania!';
-  } else {
-    status.textContent = '❌ Hasło jeszcze nie spełnia wszystkich wymagań';
-  }
+  status.textContent = ruleStates.every(Boolean)
+    ? '✅ Hasło spełnia wszystkie wymagania!'
+    : '❌ Hasło jeszcze nie spełnia wszystkich wymagań';
 }
 
 input.addEventListener("input", updateRules);
