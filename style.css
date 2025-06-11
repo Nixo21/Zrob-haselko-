@@ -1,43 +1,4 @@
-body {
-  font-family: sans-serif;
-  background: #111;
-  color: #eee;
-  text-align: center;
-  padding: 2em;
-}
-
-input {
-  font-size: 1.2em;
-  padding: 0.5em;
-  width: 80%;
-  max-width: 500px;
-  border: none;
-  border-radius: 4px;
-}
-
-ul {
-  margin-top: 1em;
-  padding-left: 0;
-}
-
-li {
-  margin: 0.4em 0;
-  list-style: none;
-  padding: 0.3em;
-  border-radius: 5px;
-  transition: background 0.3s;
-}
-
-li.invalid {
-  background: #330000;
-  color: #ff5555;
-}
-
-li.valid {
-  background: #003300;
-  color: #55ff55;
-}
-
-#flagContainer {
-  margin-top: 2em;
-}
+body { font-family: sans-serif; background: #eee; text-align: center; }
+#board { margin: auto; }
+li.valid { background: #cfc; }
+li.invalid { background: #fcc; }
