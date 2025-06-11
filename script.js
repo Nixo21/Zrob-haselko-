@@ -1,72 +1,64 @@
-const input   = document.getElementById('passwordInput');
+const input = document.getElementById('passwordInput');
 const rulesUI = document.getElementById('rulesList');
-const status  = document.getElementById('statusMessage');
-const flagDiv = document.getElementById('flagContainer');
+const status = document.getElementById('statusMessage');
 
-function getMoonEmoji() {
-  const today = new Date();
-  const lp = 2551443;
-  const new_moon = new Date(1970, 0, 7, 20, 35, 0);
-  const phase = ((today.getTime() - new_moon.getTime()) / 1000) % lp;
-  const index = Math.floor((phase / (lp / 8))) % 8;
-  return ['🌑','🌒','🌓','🌔','🌕','🌖','🌗','🌘'][index];
+// Faza księżyca
+function getMoonEmoji(){
+  const t = new Date();
+  const lp = 2551443, nm = new Date(1970,0,7,20,35);
+  const phase = ((t - nm)/1000)%lp;
+  return ['🌑','🌒','🌓','🌔','🌕','🌖','🌗','🌘'][Math.floor(phase/(lp/8))];
 }
+const moon = getMoonEmoji();
+const weekday = ['niedz.','pon.','wt.','śr.','czw.','pt.','sob.'][new Date().getDay()];
+const wordleWords = ['kotek','mleko','domki','psion','rzeka'];
+const wordle = wordleWords[new Date().getDate()%wordleWords.length];
 
-const moonEmoji = getMoonEmoji();
-const today = new Date();
-const wordleList = ['kotek','mleko','domki','psion','rzeka'];
-const wordleWord = wordleList[today.getDate() % wordleList.length];
-const geoAnswer = "Polska";
-const chessBest = 'e4';
-const targetSum = 25;
-const romanNum = 'XIV';
-const sqrtNum = 144;
-const sqrtAns = String(Math.sqrt(sqrtNum));
-const youtubers = ['GPlay','Graf','Rezi'];
+let map = L.map('map').setView([52.2,19.2],5);
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+let chosenCountry = null;
+fetch('https://restcountries.com/v3.1/all').then(r=>r.json()).then(data=>{
+  data.forEach(c=>{
+    L.geoJSON(c.latlng&&{type:'Point',coordinates:c.latlng.reverse()},{
+      pointToLayer:(f,latlng)=>L.marker(latlng).on('click',()=>chosenCountry=c.name.common)
+    }).addTo(map);
+  });
+});
 
-const flagURL = "https://flagcdn.com/w320/pl.png";
-flagDiv.innerHTML = `<img src="${flagURL}" width="100" alt="Flaga kraju" /><br><small>Jakiego to kraju flaga?</small>`;
+let board = Chessboard('board', {position:'start'});
+const chess = new Chess();
+const engine = new Worker('stockfish.js');
+let bestMove = null;
+engine.onmessage = e=>{
+  if(e.data.startsWith('bestmove')){
+    bestMove = e.data.split(' ')[1];
+  }
+};
+engine.postMessage('position fen '+chess.fen());
+engine.postMessage('go depth 12');
 
 const rules = [
-  { desc: '1. Hasło min. 8 znaków',                        test: p => p.length >= 8 },
-  { desc: '2. Min. jedna wielka litera',                   test: p => /[A-ZĄĆĘŁŃÓŚŹŻ]/.test(p) },
-  { desc: '3. Min. jedna cyfra',                           test: p => /\d/.test(p) },
-  { desc: '4. Min. znak specjalny (!@#$%^&*)',             test: p => /[!@#$%^&*]/.test(p) },
-  { desc: '5. Brak spacji',                                test: p => !/\s/.test(p) },
-  { desc: `6. Zawiera emotkę fazy księżyca ${moonEmoji}`, test: p => p.includes(moonEmoji) },
-  { desc: `7. Suma cyfr = ${targetSum}`,                  test: p => (p.match(/\d/g)||[]).map(Number).reduce((a,b)=>a+b,0) === targetSum },
-  { desc: `8. Geo: wpisz kraj z flagi`,                    test: p => p.toLowerCase().includes(geoAnswer.toLowerCase()) },
-  { desc: `9. Szachy: ruch "${chessBest}"`,               test: p => p.includes(chessBest) },
-  { desc: `10. Liczba rzymska "${romanNum}"`,             test: p => p.includes(romanNum) },
-  { desc: `11. Pierwiastek z ${sqrtNum} = ${sqrtAns}`,   test: p => p.includes(sqrtAns) },
-  { desc: `12. YouTuber: ${youtubers.join(', ')}`,        test: p => youtubers.some(n=>p.includes(n)) },
-  { desc: `13. Hasło zawiera słowo Wordle "${wordleWord}"`, test: p => p.toLowerCase().includes(wordleWord) },
+  {desc:'1. min 8 znaków', test:p=>p.length>=8},
+  {desc:'2. wielka litera', test:p=>/[A-ZĄĆĘŁŃÓŚŹŻ]/.test(p)},
+  {desc:'3. cyfra', test:p=>/\d/.test(p)},
+  {desc:`4. faza księżyca ${moon}`, test:p=>p.includes(moon)},
+  {desc:`5. dzień tygodnia ${weekday}`, test:p=>p.includes(weekday)},
+  {desc:'6. Wordle słowo', test:p=>p.includes(wordle)},
+  {desc:'7. Geo: kliknij kraj', test:p=>chosenCountry && p.toLowerCase().includes(chosenCountry.toLowerCase())},
+  {desc:`8. Szachy: ruch ${bestMove}`, test:p=>bestMove&&p.includes(bestMove)}
 ];
 
-let ruleStates = new Array(rules.length).fill(false);
-
-function updateRules() {
-  const pass = input.value;
-  let firstInvalidIndex = -1;
-
-  ruleStates = rules.map((r, i) => {
-    const isValid = r.test(pass);
-    if (!isValid && firstInvalidIndex === -1) firstInvalidIndex = i;
-    return isValid;
-  });
-
-  rulesUI.innerHTML = '';
-  rules.forEach((r, i) => {
-    const li = document.createElement('li');
+function update(){
+  const p = input.value;
+  let idx=-1;
+  rules.forEach((r,i)=>{ if(!r.test(p)&&idx<0) idx=i });
+  rulesUI.innerHTML='';
+  rules.forEach((r,i)=>{
+    let li = document.createElement('li');
     li.textContent = r.desc;
-    li.className = ruleStates[i] ? 'valid' : (i === firstInvalidIndex ? 'invalid' : '');
+    li.className = i<idx? 'valid': i===idx? 'invalid':'';
     rulesUI.appendChild(li);
   });
-
-  status.textContent = ruleStates.every(Boolean)
-    ? '✅ Hasło spełnia wszystkie wymagania!'
-    : '❌ Hasło jeszcze nie spełnia wszystkich wymagań';
+  status.textContent = idx<0?'✅ OK':'❌';
 }
-
-input.addEventListener("input", updateRules);
-updateRules();
+input.oninput=update;
