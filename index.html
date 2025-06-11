@@ -1,18 +1,20 @@
 <!DOCTYPE html>
 <html lang="pl">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Gra Hasło</title>
-  <link rel="stylesheet" href="style.css" />
+  <meta charset="UTF-8">
+  <title>Gra Hasło PL</title>
+  <style>
+    body { font-family: sans-serif; background: #111; color: #eee; text-align: center; padding: 2em; }
+    input { font-size: 1.2em; padding: 0.5em; width: 80%; }
+    .invalid { color: red; }
+  </style>
 </head>
 <body>
-  <div class="container">
-    <h1>Twoje hasło</h1>
-    <input type="text" id="passwordInput" placeholder="Wpisz hasło..." />
-    <ul id="rulesList"></ul>
-    <p id="statusMessage"></p>
-  </div>
+  <h1>🧠 Gra Hasło (PL)</h1>
+  <input id="passwordInput" placeholder="Wpisz hasło..." />
+  <ul id="rulesList"></ul>
+  <p id="statusMessage"></p>
+  <div id="flagContainer" style="margin-top:1em;"></div>
   <script src="script.js"></script>
 </body>
 </html>
